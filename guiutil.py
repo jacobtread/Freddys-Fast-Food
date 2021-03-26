@@ -1,8 +1,7 @@
 from math import floor
 from re import sub
 from sys import platform
-from typing import List, Dict
-
+from typing import List, Dict, NoReturn
 from order import Order
 
 # Box drawing chars
@@ -36,7 +35,7 @@ def is_linux() -> bool:
     return platform == "linux" or platform == "linux2"
 
 
-def error(text: str):
+def error(text: str) -> NoReturn:
     """
     Used for printing errors such as bad input to the console
     on linux devices it will use red color formatting
@@ -51,7 +50,7 @@ def error(text: str):
         print(text)
 
 
-def good(text: str):
+def good(text: str) -> NoReturn:
     """
     Used for printing success texts such as completed
     tasks on linux devices it wil use green color
@@ -133,6 +132,13 @@ def format_price(price: float) -> str:
 
 
 def create_prompt(lines: List[str]) -> str:
+    """
+    Creates a prompt message with the provided lines
+    (Used to tell the user what information we want)
+
+    :param lines: The lines to put into the prompt
+    :return: The created prompt
+    """
     # The output string containing the menu
     output: str = f'{BOX_CTL}\n'
     # The current line we a printing
@@ -162,6 +168,17 @@ def splitter() -> str:
     return BOX_SVL + (BOX_H * BOX_WIDTH) + BOX_SVR + '\n'
 
 
+def item_padded(text: str) -> str:
+    """
+    Appends box chars and padding to a text so that it
+    can be used inside of a box
+
+    :param text: The item text to pad
+    :return: The padded item text
+    """
+    return BOX_V + pad_right(text, BOX_WIDTH) + BOX_V + '\n'
+
+
 def create_menu(types: List[Dict[str, float or str]]) -> str:
     """
     Creates a string representation of the menu
@@ -175,7 +192,7 @@ def create_menu(types: List[Dict[str, float or str]]) -> str:
     index: int = 0
     # Whether or not this is the first section being added
     first: bool = True
-    for section in types:
+    for menu_type in types:
         if first:  # If this is the first section change first to false then continue
             first = False
         else:
@@ -183,16 +200,16 @@ def create_menu(types: List[Dict[str, float or str]]) -> str:
             # with left and right splits
             output += BOX_SVL + (BOX_H * BOX_WIDTH) + BOX_SVR + '\n'
 
-        name: str = section['name']  # The name of the section
-        price: float = section['price']  # The price of the items in this section
+        name: str = menu_type['name']  # The name of the section
+        price: float = menu_type['price']  # The price of the items in this section
 
         price_text: str = format_price(price)
         formatting_length: int = 0
 
         # If the price has a custom format we should
         # apply that here
-        if 'price_format' in section:
-            price_text = section['price_format'].format(price_text)
+        if 'price_format' in menu_type:
+            price_text = menu_type['price_format'].format(price_text)
 
         # If we are on linux we can apply color formatting
         if is_linux():
@@ -212,26 +229,50 @@ def create_menu(types: List[Dict[str, float or str]]) -> str:
         output += BOX_SVL + (BOX_H * BOX_WIDTH) + BOX_SVR + '\n'
 
         # Ensure that this sections has items (fish not chips)
-        if 'items' in section:
+        if 'items' in menu_type:
             # The item inside the section
-            items: List[str] = section['items']
+            items: List[str] = menu_type['items']
             for item in items:
                 # Format the item with it's index and name
                 item = f'{index + 1}) {item}'
                 # Append the item to the output
-                output += BOX_V + pad_right(' ' + item, BOX_WIDTH) + BOX_V + '\n'
+                output += item_padded(' ' + item)
                 index += 1  # Increase the index
-        elif 'text' in section:
+        elif 'text' in menu_type:
             # This section doesn't have any items but it has a
             # message so this will be its object
-            item_text = f'{index + 1}) {section["text"]}'
+            item_text = f'{index + 1}) {menu_type["text"]}'
             # Append the text to the output
-            output += BOX_V + pad_right(' ' + item_text, BOX_WIDTH) + BOX_V + '\n'
+            output += item_padded(' ' + item_text)
             index += 1  # Increase the index
 
     # Append the bottom of the box
     output += BOX_CBL + (BOX_H * BOX_WIDTH) + BOX_CBR
     return output
+
+
+def get_item_price(types: List[dict], item_name: str, is_name: bool) -> float:
+    """
+    Finds the price of the specified item
+
+    :param types: The menu type sections
+    :param item_name: The name of the item
+    :param is_name: If true then the item name is a name not an item
+    :return: The price or 0 if not found
+    """
+    for menu_type in types:
+        # The name of the menu item
+        name: str = menu_type['name']
+        # The price of these items
+        price: float = menu_type['price']
+        # If we are searching for type names and it matches
+        if is_name and name == item_name:
+            return price  # Return the price
+        # Otherwise if this type has items and its in the items
+        elif 'items' in menu_type and item_name in menu_type['items']:
+            return price  # Return the price
+    # Not found so return 0
+    return 0
 
 
 def create_order_list(order: Order, types: List[dict]) -> str:
@@ -246,59 +287,72 @@ def create_order_list(order: Order, types: List[dict]) -> str:
     output: str = BOX_CTL + (BOX_H * BOX_WIDTH) + BOX_CTR + '\n'
     # The current index of the item
     index: int = 0
-    # Append the order id title
-    output += create_title('Order # ' + order.order_id)
-    # Append a splitter
-    output += splitter()
 
+    # Append the order id
+    output += create_title('Order # ' + order.order_id) + splitter()
     # Append the customer name
-    output += BOX_V + pad_right(' Name: ' + order.name, BOX_WIDTH) + BOX_V + '\n'
+    output += item_padded(' Name: ' + order.name)
     # Append the customer phone
-    output += BOX_V + pad_right(' Phone: ' + order.phone, BOX_WIDTH) + BOX_V + '\n'
+    output += item_padded(' Phone: ' + order.phone)
+
     if order.delivery:  # If the customer is getting it delivered
         # Append the customer address
-        output += BOX_V + pad_right(' Address: ' + order.address, BOX_WIDTH) + BOX_V + '\n'
+        output += item_padded(' Address: ' + order.address)
+
+    if order.frozen:  # If the customer wants it frozen
+        # Append the message "Frozen Order Discount" indicting there is a discount
+        output += item_padded(' Frozen Order Discount')
 
     if order.empty():
         # If we have an empty order tell the user
-        output += create_title('No Items')
+        output += splitter() + create_title('No Items')
+
     else:
-        output += splitter()  # Append a splitter
-
         # If we have fish in our order
-    if len(order.fish) > 0:
-        output += splitter()  # Append a splitter
-        # Append the title
-        output += create_title('Fish (Quantity):')
-        output += splitter()  # Append a splitter
+        if len(order.fish) > 0:
+            # Append the title
+            output += splitter() + create_title('Fish (Quantity):') + splitter()
 
-        for fish in order.fish:
-            amount: int = order.fish[fish]  # The amount of fish
-            # Append the fish item
-            output += BOX_V + pad_right(f' {index + 1}) {fish} {amount}', BOX_WIDTH) + BOX_V + '\n'
-            index += 1  # Increase the index
+            for fish in order.fish:
+                amount: int = order.fish[fish]  # The amount of fish
+                # Find the price of this fish type then times it by how many we have
+                price: float = get_item_price(types, fish, False) * amount
+                # Append the fish item
+                output += item_padded(f' {index + 1}) {fish} {amount} - {format_price(price)}')
+                index += 1  # Increase the index
 
-    # If we have chips in our order
-    if len(order.chips) > 0:
-        output += splitter()  # Append a splitter
-        # Append the title
-        output += create_title('Chips (Scoops):')
-        output += splitter()  # Append a splitter
+        # If we have chips in our order
+        if len(order.chips) > 0:
 
-        for chips in order.chips:
-            # Append the chips item
-            output += BOX_V + pad_right(f' {index + 1}) {chips} scoops', BOX_WIDTH) + BOX_V + '\n'
-            index += 1  # Increase the index
+            # Append the title
+            output += splitter() + create_title('Chips (Scoops):') + splitter()
 
-    if not order.empty():
+            # Find the price of chips
+            price: float = get_item_price(types, 'Chips', True)
+
+            for chips in order.chips:
+                # Append the chips item
+                output += item_padded(f' {index + 1}) {chips} scoops - {format_price(price * chips)}')
+                index += 1  # Increase the index
+
+        # Calculate the prices
         frozen_discount, total_price, total_gst, total_inc_gst = order.calculate_prices(types)
+
         output += splitter()  # Append a splitter
-        if order.delivery:
-            output += BOX_V + pad_right(' DELIVERY: ' + format_price(order.delivery_charge), BOX_WIDTH) + BOX_V + '\n'
-        output += BOX_V + pad_right(' TOTAL: ' + format_price(total_price), BOX_WIDTH) + BOX_V + '\n'
-        output += BOX_V + pad_right(' DISCOUNT: ' + format_price(frozen_discount), BOX_WIDTH) + BOX_V + '\n'
-        output += BOX_V + pad_right(' TOTAL GST: ' + format_price(total_gst), BOX_WIDTH) + BOX_V + '\n'
-        output += BOX_V + pad_right(' TOTAL INC GST: ' + format_price(total_inc_gst), BOX_WIDTH) + BOX_V + '\n'
+
+        if order.delivery:  # If the order is delivery
+            # Append the cost for delivery
+            output += item_padded(' DELIVERY: ' + format_price(order.delivery_charge))
+        if order.frozen:  # If the order is frozen
+            # Append the amount taken away by the frozen discount
+            output += item_padded(' DISCOUNT: ' + format_price(frozen_discount))
+
+        # Append the total cost (after delivery and discount)
+        output += item_padded(' TOTAL: ' + format_price(total_price))
+        # Append the total amount of GST
+        output += item_padded(' TOTAL GST: ' + format_price(total_gst))
+        # Append the total inclusive of GST
+        output += item_padded(' TOTAL INC GST: ' + format_price(total_inc_gst))
 
     # Append the bottom of the box
     output += BOX_CBL + BOX_H * BOX_WIDTH + BOX_CBR

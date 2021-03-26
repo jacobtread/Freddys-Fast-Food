@@ -48,6 +48,7 @@ class Order:
         """
         # The total calculated price
         total_price: float = 0
+        # The total amount discounted from the order
         frozen_discount: float = 0
         if self.empty():
             # The current order is empty so we return 0 for all prices
@@ -71,8 +72,8 @@ class Order:
                 for amount in self.chips:
                     # Increase the price by the amount of chips * price
                     total_price += price * amount
-        if self.delivery:
-            total_price += self.delivery_charge
+        if self.delivery:  # If the order is being delivered
+            total_price += self.delivery_charge  # Add the delivery charge to the price
         # The gst amount of the total (e.g $total * 0.15 aka 15%)
         total_gst: float = total_price * self.gst_amount
         # The total amount inclusive of gst (total + gst)

@@ -1,8 +1,8 @@
-from typing import Callable, Any
+from typing import Callable, Any, List, NoReturn
 from guiutil import error
 
-BOOLEAN_YES = ['y', 'yes', 't', 'true', '1']  # A list of the values that represent True
-BOOLEAN_NO = ['n', 'no', 'f', 'false', '0']  # A list of the values that represent False
+BOOLEAN_YES: List[str] = ['y', 'yes', 't', 'true', '1']  # A list of the values that represent True
+BOOLEAN_NO: List[str] = ['n', 'no', 'f', 'false', '0']  # A list of the values that represent False
 
 
 class ValidationError(Exception):
@@ -107,6 +107,40 @@ def accept_bool(message: str) -> bool:
 class Validation:
 
     @staticmethod
+    def list_or_int(value: str, values: List[str], min_value: int, max_value: int) -> NoReturn:
+        """
+        Attempts to validate the input as one of the
+        value or an integer between the min and max.
+        Throws a validation exception if neither of
+        these are True
+
+        :param value: The value to validate
+        :param values: The list of acceptable values
+        :param min_value: The minimum acceptable value
+        :param max_value: The maximum acceptable value
+        """
+        if value not in values:  # If the value is not one of the text values
+            value: int = Validation.int(value)  # Validate the that the value is an int
+            Validation.min_max(value, min_value, max_value)  # Validate that its within the bounds
+
+    @staticmethod
+    def list_or_float(value: str, values: List[str], min_value: float, max_value: float) -> NoReturn:
+        """
+        Attempts to validate the input as one of the
+        value or an float between the min and max.
+        Throws a validation exception if neither of
+        these are True
+
+        :param value: The value to validate
+        :param values: The list of acceptable values
+        :param min_value: The minimum acceptable value
+        :param max_value: The maximum acceptable value
+        """
+        if value not in values:  # If the value is not one of the text values
+            value: float = Validation.float(value)  # Validate the that the value is an float
+            Validation.min_max(value, min_value, max_value)  # Validate that its within the bounds
+
+    @staticmethod
     def int(value: str) -> int:
         """
         Attempts to validate the input as an
@@ -139,7 +173,7 @@ class Validation:
             raise ValidationError('Provided input "{}" is not a valid number'.format(value))
 
     @staticmethod
-    def min_max(value: float or int, min_value: float or int, max_value: float or int):
+    def min_max(value: float or int, min_value: float or int, max_value: float or int) -> NoReturn:
         """
         Attempts to validate that the float/int input
         is within the specified minimum and maximum value.
