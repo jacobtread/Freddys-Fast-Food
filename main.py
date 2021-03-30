@@ -117,28 +117,24 @@ def menu_main() -> NoReturn:
     while True:
         # Prompts the user for which menu they would like to visit
         menu_selection: int = accept_int(create_prompt([
-            '1) Display Menu "Displays a list of available goods"',
-            '2) Add item "Adds an item to the order"',
-            '3) Remove item "Removes an item from the order"',
-            '4) List order "Displays the contents of the order"',
-            '5) Finish Order "Finalizes the order"',
-            '6) Cancel Order "Cancels the current order and resets"'
-        ]), 1, 6)  # Accepts numbers from 1 - 6
-
-        if menu_selection == 1:  # If the user enters 1 (Display Menu)
-            menu_list()  # Enter the menu_list screen
-        elif menu_selection == 2:  # If the user enters 2 (Add Item)
+            '1) Add item "Adds an item to the order"',
+            '2) Remove item "Removes an item from the order"',
+            '3) List order "Displays the contents of the order"',
+            '4) Finish Order "Finalizes the order"',
+            '5) Cancel Order "Cancels the current order and resets"'
+        ]), 1, 5)  # Accepts numbers from 1 - 6
+        if menu_selection == 1:  # If the user enters 2 (Add Item)
             menu_add()  # Enter the menu_add screen
-        elif menu_selection == 3:  # If the user enters 3 (Remove Item)
+        elif menu_selection == 2:  # If the user enters 3 (Remove Item)
             menu_remove()  # Enter the menu_remove screen
-        elif menu_selection == 4:  # If the user enters 4 (List Order)
+        elif menu_selection == 3:  # If the user enters 4 (List Order)
             menu_order()  # Enter the menu_order screen
-        elif menu_selection == 5:  # If the user enters 5 (Finish Order)
+        elif menu_selection == 4:  # If the user enters 5 (Finish Order)
             # Enter the menu_finish screen if this returns True
             # we are being told to exit the main loop (shutdown)
             if menu_finish():
                 break  # Exit the main loop
-        elif menu_selection == 6:  # If the user enters 6 (Cancel Order)
+        elif menu_selection == 5:  # If the user enters 6 (Cancel Order)
             # Enter the menu_cancel screen if this returns True
             # we are being told to exit the main loop (shutdown)
             if menu_cancel():

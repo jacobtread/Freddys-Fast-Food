@@ -13,7 +13,7 @@ Internal assessment Digital Technologies for Achievement Standard 91896
 - [x] Fully typed
 - [x] Limits on items
 
-### TODO : 
+### TODO :
 - [ ] Bug checked
 - [ ] Fully tested
 - [ ] Testing sheet
