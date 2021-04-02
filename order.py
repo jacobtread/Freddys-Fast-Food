@@ -9,8 +9,8 @@ class Order:
     address: str  # The address of the user
     delivery: bool  # Whether or not to deliver the order
 
-    fish: Dict[str, int] = {}  # The fish and the amount ordered
-    chips: List[float] = []  # The amounts of the chips ordered
+    fish: Dict[str, int]  # The fish and the amount ordered
+    chips: List[float]  # The amounts of the chips ordered
     frozen: bool  # Whether or not the order is frozen
 
     max_per_fish: int  # The maximum amount of fish per type
@@ -38,6 +38,8 @@ class Order:
         self.frozen_discount = frozen_discount
         self.gst_amount = gst_amount
         self.delivery_charge = delivery_charge
+        self.fish = {}
+        self.chips = []
 
     def calculate_prices(self, types: List[dict]) -> (int, int, int, int):
         """
