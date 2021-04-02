@@ -26,7 +26,7 @@ COLOR_END: str = '\033[0m'  # Clears the current terminal color
 
 BOX_WIDTH: int = 78  # The width that boxes should be (this excludes the sides -2)
 
-if platform == 'nt':
+if os.name == 'nt':
     # Fixes color codes on windows
     os.system('')
 
