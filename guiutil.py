@@ -1,7 +1,9 @@
+import os
 from math import floor
 from re import sub
 from sys import platform
 from typing import List, Dict, NoReturn
+
 from order import Order
 
 # Box drawing chars
@@ -24,15 +26,9 @@ COLOR_END: str = '\033[0m'  # Clears the current terminal color
 
 BOX_WIDTH: int = 78  # The width that boxes should be (this excludes the sides -2)
 
-
-def is_linux() -> bool:
-    """
-    Determines whether or not the device running this
-    program is using linux
-
-    :return: Whether or not the platform is linux
-    """
-    return platform == "linux" or platform == "linux2"
+if platform == 'nt':
+    # Fixes color codes on windows
+    os.system('')
 
 
 def error(text: str) -> NoReturn:
@@ -42,12 +38,7 @@ def error(text: str) -> NoReturn:
 
     :param text: The error text contents
     """
-    if is_linux():  # We are on linux so we can use formatting codes
-        # Print the message with the red formatting at the start
-        # and the reset formatting at end
-        print(COLOR_RED + text + COLOR_END)
-    else:  # We aren't on linux so just print the text
-        print(text)
+    print(COLOR_RED + text + COLOR_END)
 
 
 def good(text: str) -> NoReturn:
@@ -58,12 +49,7 @@ def good(text: str) -> NoReturn:
 
     :param text: The text contents
     """
-    if is_linux():  # We are on linux so we can use formatting codes
-        # Print the message with the red formatting at the start
-        # and the reset formatting at end
-        print(COLOR_GREEN + text + COLOR_END)
-    else:  # We aren't on linux so just print the text
-        print(text)
+    print(COLOR_GREEN + text + COLOR_END)
 
 
 def center(text: str, columns: int = BOX_WIDTH) -> str:
@@ -144,13 +130,10 @@ def create_prompt(lines: List[str]) -> str:
     # The current line we a printing
     line: str
     for line in lines:
-        # If the software is running on linux we get
-        # to use color formatting
-        if is_linux():
-            # Regex replace all numbers and surround them with yellow
-            line = sub(r'([$]*[0-9]+[.]?[0-9]*)', f'{COLOR_YELLOW}\\{1}{COLOR_END}', line)
-            # Regex replace all quoted text and surround them with yellow
-            line = sub(r'"(.*)"', f'{COLOR_YELLOW}"\\{1}"{COLOR_END}', line)
+        # Regex replace all numbers and surround them with yellow
+        line = sub(r'([$]*[0-9]+[.]?[0-9]*)', f'{COLOR_YELLOW}\\{1}{COLOR_END}', line)
+        # Regex replace all quoted text and surround them with yellow
+        line = sub(r'"(.*)"', f'{COLOR_YELLOW}"\\{1}"{COLOR_END}', line)
         # Append the line to the output
         output += f'{BOX_V} {line}\n'
     # Append the arrow for user input
@@ -211,13 +194,11 @@ def create_menu(types: List[Dict[str, float or str]]) -> str:
         if 'price_format' in menu_type:
             price_text = menu_type['price_format'].format(price_text)
 
-        # If we are on linux we can apply color formatting
-        if is_linux():
-            # Append the yellow color and the reset color to the price text
-            price_text = COLOR_YELLOW + price_text + COLOR_END
-            # Set the length of the formatting to the length
-            # of the reset char and the yellow char
-            formatting_length = len(COLOR_YELLOW) + len(COLOR_END)
+        # Append the yellow color and the reset color to the price text
+        price_text = COLOR_YELLOW + price_text + COLOR_END
+        # Set the length of the formatting to the length
+        # of the reset char and the yellow char
+        formatting_length = len(COLOR_YELLOW) + len(COLOR_END)
 
         # Appending the name title to the output
         output += create_title(name)
