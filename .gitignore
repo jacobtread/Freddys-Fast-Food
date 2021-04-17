@@ -122,3 +122,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+.idea/
+
+.~lock.2.7 AS91890 - Python Marking Guide.xlsx#
